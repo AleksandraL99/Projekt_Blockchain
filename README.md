@@ -2,7 +2,5 @@ This is code from Tutorial [Build your own NFT Marketplace from Scratch](https:/
 
 
 Project scope:
-
--adding NFT
-
--displaying NFT in the gallery
+-add NFT
+-display NFT in the gallery
