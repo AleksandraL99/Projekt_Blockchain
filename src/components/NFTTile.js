@@ -1,24 +1,28 @@
-import {Link,} from "react-router-dom";
+import {Link} from "react-router-dom";
 import {GetIpfsUrlFromPinata} from "../utils";
 
+// This component renders an individual NFT tile, displaying its image and details.
 function NFTTile (data) {
+    // Prepare the link to the NFT's detailed page using its token ID.
     const newTo = {
-        pathname:"/nftPage/"+data.data.tokenId
+        pathname: "/nftPage/" + data.data.tokenId
     }
 
+    // Fetch the URL of the NFT image from IPFS using a utility function.
     const IPFSUrl = GetIpfsUrlFromPinata(data.data.image);
 
+    // Render the NFT tile with an image and description.
     return (
         <Link to={newTo}>
-        <div className="border-2 ml-12 mt-5 mb-12 flex flex-col items-center rounded-lg w-48 md:w-72 shadow-2xl">
-            <img src={IPFSUrl} alt="" className="w-72 h-80 rounded-lg object-cover" crossOrigin="anonymous" />
-            <div className= "text-white w-full p-2 bg-gradient-to-t from-[#454545] to-transparent rounded-lg pt-5 -mt-20">
-                <strong className="text-xl">{data.data.name}</strong>
-                <p className="display-inline">
-                    {data.data.description}
-                </p>
+            <div className="border-2 ml-12 mt-5 mb-12 flex flex-col items-center rounded-lg w-48 md:w-72 shadow-2xl">
+                <img src={IPFSUrl} alt="" className="w-72 h-80 rounded-lg object-cover" crossOrigin="anonymous" />
+                <div className="text-white w-full p-2 bg-gradient-to-t from-[#454545] to-transparent rounded-lg pt-5 -mt-20">
+                    <strong className="text-xl">{data.data.name}</strong>
+                    <p className="display-inline">
+                        {data.data.description}
+                    </p>
+                </div>
             </div>
-        </div>
         </Link>
     )
 }

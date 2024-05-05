@@ -3,12 +3,14 @@ import {useState} from "react";
 import {uploadFileToIPFS, uploadJSONToIPFS} from "../pinata";
 import Marketplace from '../Marketplace.json';
 
+// This component allows users to add a new NFT to the marketplace.
 export default function AddNFT () {
     const [formParams, updateFormParams] = useState({ name: '', description: '', price: ''});
     const [fileURL, setFileURL] = useState(null);
     const ethers = require("ethers");
     const [message, updateMessage] = useState('');
 
+    // Disables the list button during processing to prevent multiple submissions
     async function disableButton() {
         const listButton = document.getElementById("list-button")
         listButton.disabled = true
@@ -16,6 +18,7 @@ export default function AddNFT () {
         listButton.style.opacity = 0.3;
     }
 
+    // Enables the list button once processing is complete
     async function enableButton() {
         const listButton = document.getElementById("list-button")
         listButton.disabled = false
@@ -23,7 +26,7 @@ export default function AddNFT () {
         listButton.style.opacity = 1;
     }
 
-    //Upload the NFT image
+    // Handles the file upload event and updates the state
     async function OnChangeFile(e) {
         var file = e.target.files[0];
         try {
@@ -41,7 +44,7 @@ export default function AddNFT () {
         }
     }
 
-    //Uploads the metadata
+    // Uploads NFT metadata
     async function uploadMetadataToIPFS() {
         const {name, description, price} = formParams;
         if( !name || !description || !price || !fileURL)
@@ -65,6 +68,7 @@ export default function AddNFT () {
         }
     }
 
+    // Handles the submission of the NFT to the blockchain
     async function listNFT(e) {
         e.preventDefault();
         //Upload data
@@ -100,6 +104,7 @@ export default function AddNFT () {
         }
     }
 
+    // Form rendering with input fields for NFT details
     return (
         <div className="">
         <Navigation/>
