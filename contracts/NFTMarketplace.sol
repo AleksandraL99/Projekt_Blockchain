@@ -1,182 +1,121 @@
-//SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+// Importing required modules and contracts from OpenZeppelin and Hardhat
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
+// NFTMarketplace extends ERC721URIStorage to leverage the functionality of ERC721 tokens with metadata URI storage.
 contract NFTMarketplace is ERC721URIStorage {
-
+    // Using the Counters utility from OpenZeppelin to safely increment and decrement counters
     using Counters for Counters.Counter;
-    //_tokenIds variable has the most recent minted tokenId
+    // Private counter to keep track of token IDs
     Counters.Counter private _tokenIds;
-    //Keeps track of the number of items sold on the marketplace
-    Counters.Counter private _itemsSold;
-    //owner is the contract address that created the smart contract
+    // Owner of the contract (who deployed it)
     address payable owner;
-    //The fee charged by the marketplace to be allowed to list an NFT
+    // Listing price to mint an NFT
     uint256 listPrice = 0.01 ether;
 
-    //The structure to store info about a listed token
+    // Structure to store information about listed tokens
     struct ListedToken {
         uint256 tokenId;
         address payable owner;
-        address payable seller;
         uint256 price;
         bool currentlyListed;
     }
 
-    //the event emitted when a token is successfully listed
+    // Event to notify when a token is successfully listed
     event TokenListedSuccess (
         uint256 indexed tokenId,
         address owner,
-        address seller,
         uint256 price,
         bool currentlyListed
     );
 
-    //This mapping maps tokenId to token info and is helpful when retrieving details about a tokenId
+    // Mapping from token ID to its details, used for easy retrieval
     mapping(uint256 => ListedToken) private idToListedToken;
 
+    // Constructor sets up the ERC721 token with a name and symbol
     constructor() ERC721("NFTMarketplace", "NFTM") {
-        owner = payable(msg.sender);
+        owner = payable(msg.sender);  // Sets the contract deployer as the owner
     }
 
+    // Public function to update the listing price, only callable by the owner
     function updateListPrice(uint256 _listPrice) public payable {
         require(owner == msg.sender, "Only owner can update listing price");
         listPrice = _listPrice;
     }
 
+    // Getter to return the current listing price
     function getListPrice() public view returns (uint256) {
         return listPrice;
     }
 
-    function getLatestIdToListedToken() public view returns (ListedToken memory) {
-        uint256 currentTokenId = _tokenIds.current();
-        return idToListedToken[currentTokenId];
-    }
-
-    function getListedTokenForId(uint256 tokenId) public view returns (ListedToken memory) {
-        return idToListedToken[tokenId];
-    }
-
-    function getCurrentToken() public view returns (uint256) {
-        return _tokenIds.current();
-    }
-
-    //The first time a token is created, it is listed here
+    // Function to create a new token with metadata URI and price
     function createToken(string memory tokenURI, uint256 price) public payable returns (uint) {
-        //Increment the tokenId counter, which is keeping track of the number of minted NFTs
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        require(msg.value == listPrice, "Insufficient funds sent for listing.");
 
-        //Mint the NFT with tokenId newTokenId to the address who called createToken
-        _safeMint(msg.sender, newTokenId);
+        _tokenIds.increment();  // Increment the token ID counter
+        uint256 newTokenId = _tokenIds.current();  // Get the new token ID
+        _safeMint(msg.sender, newTokenId);  // Mint the new token
+        _setTokenURI(newTokenId, tokenURI);  // Set the token's URI
 
-        //Map the tokenId to the tokenURI (which is an IPFS URL with the NFT metadata)
-        _setTokenURI(newTokenId, tokenURI);
+        // Store the token's details in the mapping
+        idToListedToken[newTokenId] = ListedToken({
+            tokenId: newTokenId,
+            owner: payable(msg.sender),
+            price: price,
+            currentlyListed: true
+        });
 
-        //Helper function to update Global variables and emit an event
-        createListedToken(newTokenId, price);
+        // Emit an event to signal successful token creation
+        emit TokenListedSuccess(newTokenId, msg.sender, price, true);
 
         return newTokenId;
     }
 
-    function createListedToken(uint256 tokenId, uint256 price) private {
-        //Make sure the sender sent enough ETH to pay for listing
-        require(msg.value == listPrice, "Hopefully sending the correct price");
-        //Just sanity check
-        require(price > 0, "Make sure the price isn't negative");
-
-        //Update the mapping of tokenId's to Token details, useful for retrieval functions
-        idToListedToken[tokenId] = ListedToken(
-            tokenId,
-            payable(address(this)),
-            payable(msg.sender),
-            price,
-            true
-        );
-
-        _transfer(msg.sender, address(this), tokenId);
-        //Emit the event for successful transfer. The frontend parses this message and updates the end user
-        emit TokenListedSuccess(
-            tokenId,
-            address(this),
-            msg.sender,
-            price,
-            true
-        );
+    // Retrieves the details of a token given its ID
+    function getListedTokenForId(uint256 tokenId) public view returns (ListedToken memory) {
+        require(_exists(tokenId), "Token does not exist.");
+        return idToListedToken[tokenId];
     }
-    
-    //This will return all the NFTs currently listed to be sold on the marketplace
+
+    // Returns an array of all NFTs currently listed in the marketplace
     function getAllNFTs() public view returns (ListedToken[] memory) {
-        uint nftCount = _tokenIds.current();
-        ListedToken[] memory tokens = new ListedToken[](nftCount);
-        uint currentIndex = 0;
-        uint currentId;
-        //at the moment currentlyListed is true for all, if it becomes false in the future we will 
-        //filter out currentlyListed == false over here
-        for(uint i=0;i<nftCount;i++)
-        {
-            currentId = i + 1;
-            ListedToken storage currentItem = idToListedToken[currentId];
-            tokens[currentIndex] = currentItem;
-            currentIndex += 1;
+        uint256 total = _tokenIds.current();
+        ListedToken[] memory tokens = new ListedToken[](total);
+        for (uint256 i = 0; i < total; i++) {
+            uint256 tokenId = i + 1;
+            if (_exists(tokenId)) {
+                tokens[i] = idToListedToken[tokenId];
+            }
         }
-        //the array 'tokens' has the list of all NFTs in the marketplace
         return tokens;
     }
-    
-    //Returns all the NFTs that the current user is owner or seller in
+
+    // Returns an array of NFTs owned by the caller
     function getMyNFTs() public view returns (ListedToken[] memory) {
-        uint totalItemCount = _tokenIds.current();
-        uint itemCount = 0;
-        uint currentIndex = 0;
-        uint currentId;
-        //Important to get a count of all the NFTs that belong to the user before we can make an array for them
-        for(uint i=0; i < totalItemCount; i++)
-        {
-            if(idToListedToken[i+1].owner == msg.sender || idToListedToken[i+1].seller == msg.sender){
-                itemCount += 1;
+        uint256 totalItemCount = _tokenIds.current();
+        uint256 itemCount = 0;
+        uint256 currentIndex = 0;
+
+        ListedToken[] memory items = new ListedToken[](totalItemCount); // Pre-allocate memory for worst case
+
+        for(uint256 i = 0; i < totalItemCount; i++) {
+            uint256 tokenId = i + 1;
+            if (idToListedToken[tokenId].owner == msg.sender && _exists(tokenId)) {
+                items[currentIndex] = idToListedToken[tokenId];
+                currentIndex++;
             }
         }
 
-        //Once you have the count of relevant NFTs, create an array then store all the NFTs in it
-        ListedToken[] memory items = new ListedToken[](itemCount);
-        for(uint i=0; i < totalItemCount; i++) {
-            if(idToListedToken[i+1].owner == msg.sender || idToListedToken[i+1].seller == msg.sender) {
-                currentId = i+1;
-                ListedToken storage currentItem = idToListedToken[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
+        // Reduce the memory size of the array to fit actual count
+        assembly {
+            mstore(items, currentIndex)
         }
+
         return items;
     }
-
-    function executeSale(uint256 tokenId) public payable {
-        uint price = idToListedToken[tokenId].price;
-        address seller = idToListedToken[tokenId].seller;
-        require(msg.value == price, "Please submit the asking price in order to complete the purchase");
-
-        //update the details of the token
-        idToListedToken[tokenId].currentlyListed = true;
-        idToListedToken[tokenId].seller = payable(msg.sender);
-        _itemsSold.increment();
-
-        //Actually transfer the token to the new owner
-        _transfer(address(this), msg.sender, tokenId);
-        //approve the marketplace to sell NFTs on your behalf
-        approve(address(this), tokenId);
-
-        //Transfer the listing fee to the marketplace creator
-        payable(owner).transfer(listPrice);
-        //Transfer the proceeds from the sale to the seller of the NFT
-        payable(seller).transfer(msg.value);
-    }
-
-    //We might add a resell token function in the future
-    //In that case, tokens won't be listed by default but users can send a request to actually list a token
-    //Currently NFTs are listed by default
 }

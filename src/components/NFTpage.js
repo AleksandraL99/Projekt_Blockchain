@@ -1,16 +1,16 @@
 import Navigation from "./Navigation";
-import {useParams} from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MarketplaceJSON from "../Marketplace.json";
 import axios from "axios";
-import {useState} from "react";
-import {GetIpfsUrlFromPinata} from "../utils";
+import { useState } from "react";
+import { GetIpfsUrlFromPinata } from "../utils";
 
 // This component displays detailed information about a specific NFT.
 export default function NFTPage (props) {
 
     const [data, updateData] = useState({}); // State to store NFT data.
     const [dataFetched, updateDataFetched] = useState(false); // State to track if data has been fetched.
-    const [updateCurrAddress] = useState("0x"); // State to store the current user's wallet address.
+    const [currentAddress, setCurrentAddress] = useState("0x"); // State to store the current user's wallet address.
 
     // Function to fetch NFT data based on the token ID from the blockchain.
     async function getNFTData(tokenId) {
@@ -31,7 +31,6 @@ export default function NFTPage (props) {
         let item = {
             price: meta.price,
             tokenId: tokenId,
-            seller: listedToken.seller,
             owner: listedToken.owner,
             image: meta.image,
             name: meta.name,
@@ -39,23 +38,23 @@ export default function NFTPage (props) {
         }
         updateData(item);
         updateDataFetched(true);
-        updateCurrAddress(addr);
+        setCurrentAddress(addr);
     }
 
     const params = useParams(); // Retrieve params from the URL.
     const tokenId = params.tokenId; // Extract tokenId from URL params.
-    if(!dataFetched)
+    if (!dataFetched)
         getNFTData(tokenId); // Fetch NFT data if not already fetched.
-    if(typeof data.image == "string")
+    if (typeof data.image === "string")
         data.image = GetIpfsUrlFromPinata(data.image); // Update image URL if necessary.
 
     // Render the NFT page layout including the navigation bar and detailed information.
-    return(
-        <div style={{"min-height":"50vh", "max-height":"60vh"}}>
-            <Navigation></Navigation>
+    return (
+        <div style={{ "min-height": "50vh", "max-height": "60vh" }}>
+            <Navigation />
             <div className="flex ml-20 mt-20">
                 <img src={data.image} alt="" className="w-2/5" />
-                <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5" style={{"max-height":"35vh"}}>
+                <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5" style={{ "max-height": "35vh" }}>
                     <div>
                         Name: {data.name}
                     </div>
@@ -66,12 +65,10 @@ export default function NFTPage (props) {
                         Price: <span>{data.price + " ETH"}</span>
                     </div>
                     <div>
-                        Wallet: <span className="text-sm">{data.seller}</span>
-                    </div>
-                    <div>
+                        Wallet: <span className="text-sm">{data.owner}</span>
                     </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }
