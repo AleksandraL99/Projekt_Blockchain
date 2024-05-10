@@ -2,12 +2,14 @@ import {Link} from "react-router-dom";
 import {useEffect, useState} from 'react';
 import {useLocation} from 'react-router';
 
+// This component provides navigation and connectivity features for a dApp.
 function Navigation() {
-
+    // State to manage connectivity status and user's current wallet address.
     const [connected, toggleConnect] = useState(false);
     const location = useLocation();
     const [currAddress, updateAddress] = useState('0x');
 
+    // Fetches and updates the current wallet address.
     async function getAddress() {
         const ethers = require("ethers");
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -16,6 +18,7 @@ function Navigation() {
         updateAddress(addr);
     }
 
+    // Updates the appearance and text of the connect button once connected.
     function updateButton() {
         const ethereumButton = document.querySelector('.enableEthereumButton');
         ethereumButton.textContent = "Connected";
@@ -25,11 +28,10 @@ function Navigation() {
         ethereumButton.classList.add("bg-green-500");
     }
 
+    // Manages the connection process, including network and account requests.
     async function connectWebsite() {
-
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        if(chainId !== '0xAA36A7')
-        {
+        if(chainId !== '0xAA36A7') {
             await window.ethereum.request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: '0xAA36A7' }],
@@ -43,12 +45,12 @@ function Navigation() {
             });
     }
 
+    // Effect hook to handle changes in Ethereum account or when the component mounts.
     useEffect(() => {
         if(window.ethereum === undefined)
             return;
         let val = window.ethereum.isConnected();
-        if(val)
-        {
+        if(val) {
             getAddress();
             toggleConnect(val);
             updateButton();
@@ -59,6 +61,7 @@ function Navigation() {
         })
     });
 
+    // Renders the navigation bar and connect wallet button.
     return (
         <div className="">
             <nav className="w-screen">
