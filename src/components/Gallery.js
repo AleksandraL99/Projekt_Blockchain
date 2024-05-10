@@ -1,17 +1,17 @@
 import Navigation from "./Navigation";
-import {useParams} from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import MarketplaceJSON from "../Marketplace.json";
 import axios from "axios";
-import {useState} from "react";
+import { useState, useEffect } from "react";
 import NFTTile from "./NFTTile";
 
 // Gallery component displays a user's collection of NFTs and their total value.
 export default function Gallery () {
     // State for managing data, fetch status, user address, and total value of NFTs.
-    const [data, updateData] = useState([]);
-    const [dataFetched, updateFetched] = useState(false);
+    const [data, setData] = useState([]);
+    const [dataFetched, setDataFetched] = useState(false);
     const [address, setAddress] = useState("0x");
-    const [totalPrice, updateTotalPrice] = useState("0");
+    const [totalPrice, setTotalPrice] = useState("0");
 
     // Function to load NFT data from the blockchain and update the component state.
     async function getNFTData() {
@@ -36,7 +36,6 @@ export default function Gallery () {
             let item = {
                 price,
                 tokenId: i.tokenId.toNumber(),
-                seller: i.seller,
                 owner: i.owner,
                 image: meta.image,
                 name: meta.name,
@@ -45,15 +44,17 @@ export default function Gallery () {
             return item;
         }));
 
-        updateData(items);
-        updateFetched(true);
+        setData(items);
+        setDataFetched(true);
         setAddress(addr);
-        updateTotalPrice(sumPrice.toFixed(3));
+        setTotalPrice(sumPrice.toFixed(3));
     }
 
-    const params = useParams();
-    if (!dataFetched)
-        getNFTData();
+    useEffect(() => {
+        if (!dataFetched) {
+            getNFTData();
+        }
+    }, [dataFetched]);  // Ensure getNFTData is only called once after the initial render.
 
     // Render the gallery layout including navigation, and display the total value and number of NFTs.
     return (
