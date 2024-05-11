@@ -1,7 +1,7 @@
 import Navigation from "./Navigation";
 import { useState } from "react";
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../pinata";
-import Marketplace from '../Marketplace.json';
+import Marketplace from '../Gallery.json';
 
 // This component allows users to add a new NFT to the marketplace.
 export default function AddNFT() {

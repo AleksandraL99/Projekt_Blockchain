@@ -1,6 +1,6 @@
 import Navigation from "./Navigation";
 import { useParams } from 'react-router-dom';
-import MarketplaceJSON from "../Marketplace.json";
+import MarketplaceJSON from "../Gallery.json";
 import axios from "axios";
 import { useState } from "react";
 import { GetIpfsUrlFromPinata } from "../utils";
@@ -50,11 +50,11 @@ export default function NFTPage (props) {
 
     // Render the NFT page layout including the navigation bar and detailed information.
     return (
-        <div style={{ "min-height": "50vh", "max-height": "60vh" }}>
+        <div style={{ "minHeight": "50vh", "maxHeight": "60vh" }}>
             <Navigation />
             <div className="flex ml-20 mt-20">
                 <img src={data.image} alt="" className="w-2/5" />
-                <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5" style={{ "max-height": "35vh" }}>
+                <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5" style={{ "maxheight": "35vh" }}>
                     <div>
                         Name: {data.name}
                     </div>
