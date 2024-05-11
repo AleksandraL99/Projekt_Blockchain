@@ -1,8 +1,7 @@
 import Navigation from "./Navigation";
-import { useParams } from 'react-router-dom';
-import MarketplaceJSON from "../Gallery.json";
+import GalleryJSON from "../Gallery.json";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import {useEffect, useState} from "react";
 import NFTTile from "./NFTTile";
 
 // Gallery component displays a user's collection of NFTs and their total value.
@@ -21,7 +20,7 @@ export default function Gallery () {
         const signer = provider.getSigner();
         const addr = await signer.getAddress();
 
-        let contract = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer);
+        let contract = new ethers.Contract(GalleryJSON.address, GalleryJSON.abi, signer);
         let transaction = await contract.getMyNFTs();
 
         // Process each NFT fetched from the blockchain, extract metadata, and compute total value.

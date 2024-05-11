@@ -1,12 +1,12 @@
 import Navigation from "./Navigation";
 import { useParams } from 'react-router-dom';
-import MarketplaceJSON from "../Gallery.json";
+import GalleryJSON from "../Gallery.json";
 import axios from "axios";
 import { useState } from "react";
 import { GetIpfsUrlFromPinata } from "../utils";
 
 // This component displays detailed information about a specific NFT.
-export default function NFTPage (props) {
+export default function NFTPage () {
 
     const [data, updateData] = useState({}); // State to store NFT data.
     const [dataFetched, updateDataFetched] = useState(false); // State to track if data has been fetched.
@@ -15,12 +15,11 @@ export default function NFTPage (props) {
     // Function to fetch NFT data based on the token ID from the blockchain.
     async function getNFTData(tokenId) {
         const ethers = require("ethers");
-        //After adding Hardhat network to metamask, this code will get providers and signers
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const addr = await signer.getAddress();
         //Pull the deployed contract instance
-        let contract = new ethers.Contract(MarketplaceJSON.address, MarketplaceJSON.abi, signer);
+        let contract = new ethers.Contract(GalleryJSON.address, GalleryJSON.abi, signer);
         //Create an NFT Token
         var tokenURI = await contract.tokenURI(tokenId);
         const listedToken = await contract.getListedTokenForId(tokenId);
