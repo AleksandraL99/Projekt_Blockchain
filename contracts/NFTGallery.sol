@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-// NFTMarketplace extends ERC721URIStorage to leverage the functionality of ERC721 tokens with metadata URI storage.
-contract NFTMarketplace is ERC721URIStorage {
+// NFTGallery extends ERC721URIStorage to leverage the functionality of ERC721 tokens with metadata URI storage.
+contract NFTGallery is ERC721URIStorage {
     // Using the Counters utility from OpenZeppelin to safely increment and decrement counters
     using Counters for Counters.Counter;
     // Private counter to keep track of token IDs
@@ -38,7 +38,7 @@ contract NFTMarketplace is ERC721URIStorage {
     mapping(uint256 => ListedToken) private idToListedToken;
 
     // Constructor sets up the ERC721 token with a name and symbol
-    constructor() ERC721("NFTMarketplace", "NFTM") {
+    constructor() ERC721("NFTGallery", "NFTM") {
         owner = payable(msg.sender);  // Sets the contract deployer as the owner
     }
 
@@ -82,23 +82,9 @@ contract NFTMarketplace is ERC721URIStorage {
         return idToListedToken[tokenId];
     }
 
-    // Returns an array of all NFTs currently listed in the marketplace
-    function getAllNFTs() public view returns (ListedToken[] memory) {
-        uint256 total = _tokenIds.current();
-        ListedToken[] memory tokens = new ListedToken[](total);
-        for (uint256 i = 0; i < total; i++) {
-            uint256 tokenId = i + 1;
-            if (_exists(tokenId)) {
-                tokens[i] = idToListedToken[tokenId];
-            }
-        }
-        return tokens;
-    }
-
     // Returns an array of NFTs owned by the caller
     function getMyNFTs() public view returns (ListedToken[] memory) {
         uint256 totalItemCount = _tokenIds.current();
-        uint256 itemCount = 0;
         uint256 currentIndex = 0;
 
         ListedToken[] memory items = new ListedToken[](totalItemCount); // Pre-allocate memory for worst case
